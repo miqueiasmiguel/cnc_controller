@@ -1,0 +1,15 @@
+repos:
+-   repo: https://github.com/psf/black
+    rev: 22.6.0
+    hooks:
+    - id: black
+      language_version: python3.10.1
+      stages: [commit]
+-   repo: local
+    hooks:
+      - id: requirements
+        name: requirements
+        entry: bash -c 'venv/Lib/pip freeze > requirements.txt; git add requirements.txt'
+        language: system
+        pass_filenames: false
+        stages: [commit]

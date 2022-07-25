@@ -1,6 +1,5 @@
 import re
 import os
-import shutil
 from setup import GCODEPAT, GCODEPAT2
 
 
@@ -220,6 +219,8 @@ class FileHandler:
                     if eof == "":
                         temp_file.write("\n")
                         for line in original_file:
+                            if line[0] == "M":
+                                continue
                             temp_file.write(
                                 self.offset_coord(
                                     string=line, offset_x=offset_x, offset_y=offset_y

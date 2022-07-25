@@ -113,9 +113,3 @@ class AutoFrame(tk.Frame):
             d=self.controller.door_d,
             k=self.controller.door_k,
         )
-
-
-if __name__ == "__main__":
-    root = tk.Tk()
-    main_app = AutoFrame(root)
-    root.mainloop()

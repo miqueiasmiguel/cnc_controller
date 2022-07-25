@@ -48,9 +48,3 @@ class TabFrame(tk.Frame):
 
     def set_current_tab(self, event):
         self.controller.active_tab = event.widget.index("current")
-
-
-if __name__ == "__main__":
-    root = tk.Tk()
-    main_app = TabFrame(root)
-    root.mainloop()

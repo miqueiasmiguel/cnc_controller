@@ -2,7 +2,6 @@ from typing import Type
 import tkinter as tk
 from tkinter import ttk
 from controller import Controller
-import time
 
 
 class DisplayFrame(tk.Frame):
@@ -112,9 +111,3 @@ class DisplayFrame(tk.Frame):
         self.var_wco_y.set(wco_y)
         self.var_wco_z.set(wco_z)
         self.var_current_status.set(status)
-
-
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = DisplayFrame(root)
-    root.mainloop()

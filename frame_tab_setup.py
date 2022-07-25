@@ -54,9 +54,3 @@ class SetupFrame(tk.Frame):
         self.ser.readline()
         self.ser.write(str.encode("G90G0Z0\n"))
         self.ser.readline()
-
-
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = SetupFrame(root)
-    root.mainloop()

@@ -87,7 +87,7 @@ class SerialFrame(tk.Frame):
         self.baud_rate = self.combobox_baudrate.get()
         self.ser.port = self.port_name
         self.ser.baudrate = self.baud_rate
-        self.ser.timeout = 1
+        # self.ser.timeout = 5
 
         if not self.ser.isOpen():
             try:
@@ -124,7 +124,7 @@ class SerialFrame(tk.Frame):
     def print_state(self):
         def status_report():
             while not self.close_flag:
-                if self.controller.status == "idle":
+                if self.controller.status == "Idle":
                     self.controller.busy = False
                 else:
                     self.controller.busy = True
@@ -142,12 +142,9 @@ class SerialFrame(tk.Frame):
             time.sleep(1)
             commands = self.controller.scheduler.pop(0)
             for command in commands:
-                print(command)
-                self.ser.write(str.encode(command))
-                self.ser.readline()
-
-
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = SerialFrame(root)
-    app.mainloop()
+                encoded_command = str.encode(command)
+                print(encoded_command)
+                self.ser.write(encoded_command)
+                response = self.ser.readline()
+                print(response)
+                time.sleep(0.5)

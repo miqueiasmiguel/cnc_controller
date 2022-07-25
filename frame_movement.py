@@ -1,8 +1,9 @@
+import os
+import time
 from typing import Type
 import tkinter as tk
 from tkinter import ttk
 import serial
-import time
 from controller import Controller
 from file_handler import FileHandler
 
@@ -49,6 +50,7 @@ class MovementFrame(tk.Frame):
             pass
 
     def __start_auto(self):
+
         self.controller.dispatch(event="set_door")
         height = self.controller.door_height * 10  # transformando em mm
         width = self.controller.door_width * 10  # transformando em mm
@@ -62,10 +64,16 @@ class MovementFrame(tk.Frame):
         knob_minmax = self.file_handler.get_min_max(knob_points)
 
         offset_h1_y = d
-        offset_h2_y = height - d - hinge_minmax["y_max"] - hinge_minmax["y_min"]
+        offset_h2_y = height - 2 * d - hinge_minmax["y_max"] - hinge_minmax["y_min"]
 
         offset_k_x = width - k - knob_minmax["x_max"] - knob_minmax["x_min"]
-        offset_k_y = height / 2 - (knob_minmax["y_max"] - knob_minmax["y_min"]) / 2
+        offset_k_y = (
+            height / 2
+            - d
+            - hinge_minmax["y_max"]
+            - hinge_minmax["y_min"]
+            + (knob_minmax["y_max"] - knob_minmax["y_min"]) / 2
+        )
 
         # define novo (0,0)
         print("Z H1")
@@ -81,9 +89,17 @@ class MovementFrame(tk.Frame):
                     commands.append(line + "\n")
             self.controller.scheduler.append(commands)
 
+        # espera até estar disponível
+        while self.controller.status != "Idle":
+            print("Ocupado")
+            time.sleep(1)
+
         # define novo (0,0)
         print("Z H2")
         self.controller.scheduler.append([f"G10P0L20Y{-offset_h2_y}\n"])
+
+        # vai para zero
+        self.controller.scheduler.append([f"G90 G0 X0 Y0\n"])
 
         # 2° dobradiça
         print("H2")
@@ -95,9 +111,17 @@ class MovementFrame(tk.Frame):
                     commands.append(line + "\n")
             self.controller.scheduler.append(commands)
 
+        # espera até estar disponível
+        while self.controller.status != "Idle":
+            print("Ocupado")
+            time.sleep(1)
+
         # define novo (0,0)
         print("Z M")
-        self.controller.scheduler.append([f"G10P0L20X{-offset_k_x}Y{-offset_k_y}\n"])
+        self.controller.scheduler.append([f"G10P0L20X{-offset_k_x}Y{offset_k_y}\n"])
+
+        # vai para zero
+        self.controller.scheduler.append([f"G90 G0 X0 Y0\n"])
 
         # maçaneta
         print("M")
@@ -108,6 +132,64 @@ class MovementFrame(tk.Frame):
                 if not line.isspace() and len(line) > 0:
                     commands.append(line + "\n")
             self.controller.scheduler.append(commands)
+
+        # espera até estar disponível
+        while self.controller.status != "Idle":
+            print("Ocupado")
+            time.sleep(1)
+
+        # define antigo (0,0)
+        old_wco_y = height / 2 - (knob_minmax["y_max"] - knob_minmax["y_min"]) / 2
+        old_wco_x = offset_k_x
+        print("ZZ")
+        self.controller.scheduler.append([f"G10P0L20X{old_wco_x}Y{old_wco_y}\n"])
+
+        # retorna para antigo (0,0)
+        self.controller.scheduler.append([f"G90 G0 X0 Y0\n"])
+
+        """
+        try:
+            os.remove("temp/door1.gcode")
+        except:
+            pass
+
+        # Processa a primeira dobradiça
+        self.file_handler.modify_gcode(
+            path=self.controller.door_hinge_path,
+            new_path="door1.gcode",
+            offset_x=0,
+            offset_y=offset_h1_y,
+            )
+        
+        # Processa a segunda dobradiça
+        self.file_handler.modify_gcode(
+            path=self.controller.door_hinge_path,
+            new_path="door1.gcode",
+            offset_x=0,
+            offset_y=offset_h2_y,
+        )
+
+        # Processa o puxador
+        self.file_handler.modify_gcode(
+            path=self.controller.door_knob_path,
+            new_path="door1.gcode",
+            offset_x=offset_k_x,
+            offset_y=offset_k_y,
+        )
+
+        # Executa gcode temporário
+        with open("temp/door1.gcode", "r") as file:
+            commands = []
+            for line in file:
+                line = self.file_handler.clear_comments(line)
+                if not line.isspace() and len(line) > 0:
+                    commands.append(line + "\n")
+            self.controller.scheduler.append(commands)
+
+
+        # Retorna para zero
+        self.controller.scheduler.append(["G90 G0 X0 Y0"])
+        """
 
     def __move_coord(self):
         self.controller.dispatch(event="set_coord")
@@ -142,9 +224,3 @@ class MovementFrame(tk.Frame):
 
     def __stop(self):
         self.ser.write(str.encode("\x85"))
-
-
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = MovementFrame(root)
-    root.mainloop()

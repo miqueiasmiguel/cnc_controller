@@ -196,14 +196,3 @@ class ManualFrame(tk.Frame):
         self.controller.x_coord_set = self.spinbox_x.get()
         self.controller.y_coord_set = self.spinbox_y.get()
         self.controller.z_coord_set = self.spinbox_z.get()
-
-
-if __name__ == "__main__":
-    ser = serial.Serial(port="COM4", baudrate=115200)
-    if not ser.is_open:
-        ser.open()
-    root = tk.Tk()
-    controller = Controller()
-    main_app = ManualFrame(root, controller, ser)
-    root.mainloop()
-    ser.close()
